@@ -1,12 +1,20 @@
 import './style.css'
 import lixeira from '../../assets/lixeira.png'
+import api from '../../services/api'
+import { useEffect, useState } from 'react';
 
 function Home() {
-  const usuarios = [
-    { id: "u1", nome: "Gabriel",   email: "gabriel@email.com",  idade: 17 },
-    { id: "u2", nome: "Gabriel 2", email: "gabriel2@email.com", idade: 17 },
-    { id: "u3", nome: "Gabriel 3", email: "gabriel3@email.com", idade: 17 }
-  ]
+  const[usuarios, setUsuarios] = useState([]);
+
+  async function getUsuarios(){
+    const usuariosDaApi = await api.get('/usuarios');
+    setUsuarios(usuariosDaApi.data);
+    console.log(usuarios);
+  }
+
+  useEffect(()=> {
+    getUsuarios()
+  }, [])
 
   return (
     <>
