@@ -1,10 +1,19 @@
 import './style.css'
 import lixeira from '../../assets/lixeira.png'
+import editar from '../../assets/editar.png'
 import api from '../../services/api'
-import { useEffect, useState } from 'react';
+import AtualizarUsuario from './AtualizarUsuario';
+import { useEffect, useState , useRef } from 'react';
 
 function Home() {
+
+  const inputNome = useRef();
+  const inputEmail = useRef();
+  const inputIdade = useRef();
+
   const[usuarios, setUsuarios] = useState([]);
+
+  const [usuarioEditando, setUsuarioEditando] = useState(null)
 
   async function getUsuarios(){
     const usuariosDaApi = await api.get('/usuarios');
@@ -12,8 +21,24 @@ function Home() {
     console.log(usuarios);
   }
 
+  async function createUsuario(){
+    await api.post('/cadastro', {
+        email: inputEmail.current.value,
+        nome: inputNome.current.value,
+        idade: inputIdade.current.value
+      }
+    )
+    getUsuarios();
+  }
+
+  async function deleteUsuario(id){
+    await api.delete(`deletar/${id}`);
+    getUsuarios();
+  }
+
   useEffect(()=> {
     getUsuarios()
+    //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (
@@ -29,12 +54,12 @@ function Home() {
           <form className="card form-card">
             <h2>Preencha os dados</h2>
             <div className="input-group">
-              <input className="input" name="nome"  type="text"   placeholder="Nome" />
-              <input className="input" name="email" type="email"  placeholder="E-mail" />
-              <input className="input" name="idade" type="number" placeholder="Idade" />
+              <input className="input" name="nome"  type="text"   placeholder="Nome" ref={inputNome}/>
+              <input className="input" name="email" type="email"  placeholder="E-mail" ref={inputEmail}/>
+              <input className="input" name="idade" type="number" placeholder="Idade" ref={inputIdade}/>
             </div>
             <div className="spacer" />
-            <button type="button" className="aero-btn">Cadastrar</button>
+            <button type="button" className="aero-btn" onClick={createUsuario}>Cadastrar</button>
           </form>
 
           <section className="card list-card">
@@ -47,15 +72,27 @@ function Home() {
                     <p><strong>Email:</strong> {usuario.email}</p>
                     <p><strong>Idade:</strong> {usuario.idade}</p>
                   </div>
-                  <button className="icon-btn" title="Remover">
-                    <img src={lixeira} alt="Remover" />
-                  </button>
+                  <div>
+                    <button className="icon-btn" title="Remover" onClick={ () => deleteUsuario(usuario.id)}>
+                      <img src={lixeira} alt="Remover" />
+                    </button>
+                    <button className="icon-btn-blue" title="Atualizar" onClick={() => setUsuarioEditando(usuario)}>
+                      <img src={editar} alt="Atualizar" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
           </section>
         </div>
       </div>
+      {usuarioEditando && (
+        <AtualizarUsuario
+          usuarioSelecionado={usuarioEditando}
+          onClose={() => setUsuarioEditando(null)}
+          onUpdate={getUsuarios}
+        />
+      )}
     </>
   )
 }
